@@ -1,11 +1,15 @@
 from datetime import datetime, timedelta
-from flask_httpauth import HTTPTokenAuth
 
 import jwt
 from decouple import config
+from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import BadRequest
 
 from models.user import ComplainerModel, AdminModel, ApproverModel
+
+comp = ComplainerModel
+admn = AdminModel
+appr = ApproverModel
 
 
 class AuthManager:
