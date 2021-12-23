@@ -1,14 +1,19 @@
+import os.path
 import uuid
 
 from werkzeug.exceptions import NotFound
 
+from constants import TEMP_FILE_FOLDER
 from db import db
 from managers.auth import auth
 from models import State, TransactionModel
 from models.complaint import ComplaintModel
+from services.s3 import S3Service
 from services.wise import WiseService
+from util.helpers import decode_photo
 
 wise = WiseService()
+s3 = S3Service()
 
 
 class ComplaintManager:
@@ -35,6 +40,16 @@ class ComplaintManager:
 
     @staticmethod
     def create(complaint_data, complainer):
+        """
+        TODO: Put some documentation for the code!
+        """
+        photo_name = f"{str(uuid.uuid4())}.{complaint_data.pop('photo_extension')}"
+        path = os.path.join(TEMP_FILE_FOLDER, photo_name)
+        decode_photo(complaint_data.pop("photo"), path)
+        photo_url = s3.upload_photo(path, photo_name)
+        os.remove(path)
+
+        complaint_data["photo_url"] = photo_url
         complaint_data["complainer_id"] = complainer.id
         amount = complaint_data["amount"]
         full_name = f"{complainer.first_name} {complainer.last_name}"
@@ -42,6 +57,7 @@ class ComplaintManager:
         complaint = ComplaintModel(**complaint_data)
         db.session.add(complaint)
         db.session.flush()
+
         ComplaintManager.issue_transaction(amount, full_name, iban, complaint.id)
         return complaint
 
