@@ -10,7 +10,7 @@ from db import db
 from managers.complaint import ComplaintManager
 from models import ComplaintModel, State
 from services.s3 import S3Service
-from tests.factory import ComplainerFactory
+from tests.factories import ComplainerFactory
 from tests.helpers import encoded_photo, generate_token, object_as_dict, mock_uuid
 
 
